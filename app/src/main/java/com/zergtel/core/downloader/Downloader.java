@@ -1,8 +1,6 @@
 package com.zergtel.core.downloader;
 
 
-import android.os.AsyncTask;
-
 import java.net.URL;
 
 
@@ -12,7 +10,6 @@ public class Downloader {
     //https://github.com/ytsdk/ytsdk
     //http://stackoverflow.com/questions/4032766/how-to-download-videos-from-youtube-on-java
     //http://superuser.com/questions/773719/how-do-all-of-these-save-video-from-youtube-services-work?noredirect=1&lq=1
-
 
     public static String get(String uri) throws Exception {
         return get(new URL(uri));
@@ -36,8 +33,12 @@ public class Downloader {
             case "bandcamp.com":
                 output = Bandcamp.get(uri);
                 break;
+            case "youtu.be":
+                System.out.println(uri.toString());
+                uri = new URL("https://youtube.com/watch?v=" + path.substring(1)); //Only if the youtu.be url is simple! Does not work with feature=youtu.be, etc right now
             case "youtube.com":
 //	        case "vimeo.com":
+                System.out.println("Vget: " + uri);
                 output = VGetInterface.get(uri);
                 break;
         }
