@@ -1,8 +1,18 @@
 package com.zergtel.ztvdc;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -12,9 +22,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import com.zergtel.core.downloader.*;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +84,8 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            verifyStoragePermissions(this);
+            new DownloaderTask().execute(readFromClipboard(this));
             return true;
         }
 
@@ -94,4 +112,66 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    public static void verifyStoragePermissions(Activity activity) {
+        // Check if we have write permission
+        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(
+                    activity,
+                    PERMISSIONS_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE
+            );
+        }
+    }
+
+    public static String readFromClipboard(Context context) {
+        ClipboardManager clipboard = (ClipboardManager) context
+                .getSystemService(Context.CLIPBOARD_SERVICE);
+
+        // Gets a content resolver instance
+        ContentResolver cr = context.getContentResolver();
+
+        // Gets the clipboard data from the clipboard
+        ClipData clip = clipboard.getPrimaryClip();
+        if (clip != null) {
+
+            String text = null;
+            String title = null;
+
+            // Gets the first item from the clipboard data
+            ClipData.Item item = clip.getItemAt(0);
+
+            // Tries to get the item's contents as a URI pointing to a note
+            Uri uri = item.getUri();
+
+            // If the contents of the clipboard wasn't a reference to a
+            // note, then
+            // this converts whatever it is to text.
+            if (text == null) {
+                text = item.coerceToText(context).toString();
+            }
+
+            return text;
+        }
+        return "";
+    }
 }
+
+class DownloaderTask extends AsyncTask<String, Void, String> {
+    protected String doInBackground(String... urls) {
+        try {
+            return Downloader.get(urls[0]);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "wtflol";
+    }
+
+    protected void onPostExecute(String result) {
+
+    }
+}
+
