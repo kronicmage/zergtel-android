@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity
     };
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -43,7 +43,19 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Lol this button doesn't work", Snackbar.LENGTH_LONG)
+                String clipboardContents = null;
+                String snackbarMessage = null;
+                try {
+                    clipboardContents = readFromClipboard(MainActivity.this);
+                    verifyStoragePermissions(MainActivity.this);
+                    new DownloaderTask().execute(clipboardContents);
+                    snackbarMessage = "Downloaded " + clipboardContents;
+                } catch (Exception e) {
+                    snackbarMessage = e.toString();
+                }
+
+
+                Snackbar.make(view, "Downloading " + clipboardContents, Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
@@ -84,8 +96,6 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            verifyStoragePermissions(this);
-            new DownloaderTask().execute(readFromClipboard(this));
             return true;
         }
 
@@ -174,4 +184,3 @@ class DownloaderTask extends AsyncTask<String, Void, String> {
 
     }
 }
-
