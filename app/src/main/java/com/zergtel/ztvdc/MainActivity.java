@@ -24,6 +24,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import com.zergtel.core.downloader.*;
 
+import java.math.BigInteger;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
